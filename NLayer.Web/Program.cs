@@ -1,10 +1,14 @@
-using Autofac.Extensions.DependencyInjection;
 using Autofac;
-using NLayer.Web.Modules;
+using Autofac.Extensions.DependencyInjection;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using NLayer.Repository;
-using System.Reflection;
 using NLayer.Service.Mapping;
+using NLayer.Service.Validations;
+using NLayer.Web.Filters;
+using NLayer.Web.Modules;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +27,8 @@ builder.Services.AddDbContext<AppDbContext>(x =>
         }
     });
 });
+builder.Services.AddScoped(typeof(NotFoundFilter<>));
+builder.Services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters().AddValidatorsFromAssemblyContaining<ProductDtoValidator>();
 
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
@@ -32,11 +38,10 @@ builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
 
 var app = builder.Build();
 
+app.UseExceptionHandler("/Error");
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
