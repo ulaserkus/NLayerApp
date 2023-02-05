@@ -16,7 +16,7 @@ namespace NLayer.API.Modules
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType(typeof(ProductServiceWithCaching)).As(typeof(IProductService)).InstancePerLifetimeScope();
+            //builder.RegisterType(typeof(ProductServiceWithCaching)).As(typeof(IProductService)).InstancePerLifetimeScope();
             builder.RegisterGeneric(typeof(GenericRepository<>)).As(typeof(IGenericRepository<>)).InstancePerLifetimeScope();
             builder.RegisterGeneric(typeof(Service<>)).As(typeof(IService<>)).InstancePerLifetimeScope();
             builder.RegisterType<UnitOfWork>().As(typeof(IUnitOfWork)).InstancePerLifetimeScope();
