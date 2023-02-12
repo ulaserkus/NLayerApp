@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using NLayer.Core;
 using NLayer.Core.DTOs;
 using NLayer.Core.Repositories;
@@ -47,39 +48,60 @@ namespace NLayer.Service.Services
             return CustomResponseDto<IEnumerable<Dto>>.Success(StatusCodes.Status200OK, newDtos);
         }
 
-        public Task<CustomResponseDto<bool>> AnyAsync(Expression<Func<Entity, bool>> expression)
+        public async Task<CustomResponseDto<bool>> AnyAsync(Expression<Func<Entity, bool>> expression)
         {
-            throw new NotImplementedException();
+            var hasResult = await _repository.AnyAsync(expression);
+            return CustomResponseDto<bool>.Success(StatusCodes.Status200OK, hasResult);
         }
 
-        public Task<CustomResponseDto<IEnumerable<Dto>>> GetAllAsync()
+        public async Task<CustomResponseDto<IEnumerable<Dto>>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            var entities = await _repository.GetAll().ToListAsync();
+            var dtos = _mapper.Map<IEnumerable<Dto>>(entities);
+            return CustomResponseDto<IEnumerable<Dto>>.Success(StatusCodes.Status200OK, dtos);
         }
 
-        public Task<CustomResponseDto<Dto>> GetByIdAsync(int id)
+        public async Task<CustomResponseDto<Dto>> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            var entity = await _repository.GetByIdAsync(id);
+
+            var dto = _mapper.Map<Dto>(entity);
+
+            return CustomResponseDto<Dto>.Success(StatusCodes.Status200OK, dto);
         }
 
-        public Task<CustomResponseDto<NoContentDto>> RemoveAsync(int id)
+        public async Task<CustomResponseDto<NoContentDto>> RemoveAsync(int id)
         {
-            throw new NotImplementedException();
+            var entity = await _repository.GetByIdAsync(id);
+
+            _repository.Remove(entity);
+
+            await _unitOfWork.CommitAsync();
+
+            return CustomResponseDto<NoContentDto>.Success(StatusCodes.Status204NoContent);
         }
 
-        public Task<CustomResponseDto<NoContentDto>> RemoveRangeAsync(IEnumerable<int> ids)
+        public async Task<CustomResponseDto<NoContentDto>> RemoveRangeAsync(IEnumerable<int> ids)
         {
-            throw new NotImplementedException();
+            var entities = await _repository.Where(x => ids.Contains(x.Id)).ToListAsync();
+            _repository.RemoveRange(entities);
+            await _unitOfWork.CommitAsync();
+            return CustomResponseDto<NoContentDto>.Success(StatusCodes.Status204NoContent);
         }
 
-        public Task<CustomResponseDto<NoContentDto>> UpdateAsync(Dto dto)
+        public async Task<CustomResponseDto<NoContentDto>> UpdateAsync(Dto dto)
         {
-            throw new NotImplementedException();
+            var entity = _mapper.Map<Entity>(dto);
+            _repository.Update(entity);
+            await _unitOfWork.CommitAsync();
+            return CustomResponseDto<NoContentDto>.Success(StatusCodes.Status204NoContent);
         }
 
-        public Task<CustomResponseDto<IEnumerable<Dto>>> Where(Expression<Func<Entity, bool>> expression)
+        public async Task<CustomResponseDto<IEnumerable<Dto>>> Where(Expression<Func<Entity, bool>> expression)
         {
-            throw new NotImplementedException();
+            var entities = await _repository.Where(expression).ToListAsync();
+            var dtos = _mapper.Map<IEnumerable<Dto>>(entities);
+            return CustomResponseDto<IEnumerable<Dto>>.Success(StatusCodes.Status200OK, dtos);
         }
     }
 }
